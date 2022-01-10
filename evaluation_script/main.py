@@ -52,7 +52,7 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
     tn, fp, fn, tp = confusion_matrix(
         eval_df["outbreak_true"].astype(int).values,
         eval_df["outbreak_pred"].astype(int).values,
-    )
+    ).ravel()
     f1 = tp / (tp + 0.5 * (fp + fn))
     sensitivity = tp / (tp + fn)
     specificity = tn / (tn + fp)
