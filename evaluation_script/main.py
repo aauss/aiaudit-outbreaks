@@ -1,4 +1,6 @@
 import random
+import pandas as pd
+from sklearn.metrics import f1_score, confusion_matrix
 
 
 def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwargs):
@@ -39,16 +41,31 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
             'submitted_at': u'2017-03-20T19:22:03.880652Z'
         }
     """
+    # n_cases,n_outbreak_cases,outbreak
+    annotation_df = pd.read_csv(test_annotation_file).loc[:, ["date", "outbreak"]]
+    user_preds_df = pd.read_csv(user_submission_file).loc[:, ["date", "outbreak"]]
     output = {}
+    eval_df = annotation_df.merge(
+        user_preds_df, on="date", how="left", suffixes=("_true", "_pred")
+    )
+
+    tn, fp, fn, tp = confusion_matrix(
+        eval_df["outbreak_true"].astype(int).values,
+        eval_df["outbreak_pred"].astype(int).values,
+    )
+    f1 = tp / (tp + 0.5 * (fp + fn))
+    sensitivity = tp / (tp + fn)
+    specificity = tn / (tn + fp)
+
     if phase_codename == "dev":
         print("Evaluating for Dev Phase")
         output["result"] = [
             {
                 "train_split": {
-                    "Metric1": random.randint(0, 99),
-                    "Metric2": random.randint(0, 99),
-                    "Metric3": random.randint(0, 99),
-                    "Total": random.randint(0, 99),
+                    "F1": f1,
+                    "Sensitivity": sensitivity,
+                    "Specificity": specificity,
+                    "Total": f1 + sensitivity + specificity,
                 }
             }
         ]
@@ -60,18 +77,18 @@ def evaluate(test_annotation_file, user_submission_file, phase_codename, **kwarg
         output["result"] = [
             {
                 "train_split": {
-                    "Metric1": random.randint(0, 99),
-                    "Metric2": random.randint(0, 99),
-                    "Metric3": random.randint(0, 99),
-                    "Total": random.randint(0, 99),
+                    "F1": f1,
+                    "Sensitivity": sensitivity,
+                    "Specificity": specificity,
+                    "Total": f1 + sensitivity + specificity,
                 }
             },
             {
                 "test_split": {
-                    "Metric1": random.randint(0, 99),
-                    "Metric2": random.randint(0, 99),
-                    "Metric3": random.randint(0, 99),
-                    "Total": random.randint(0, 99),
+                    "F1": f1,
+                    "Sensitivity": sensitivity,
+                    "Specificity": specificity,
+                    "Total": f1 + sensitivity + specificity,
                 }
             },
         ]
