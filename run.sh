@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 # Remove already existing zip files
 rm evaluation_script.zip
